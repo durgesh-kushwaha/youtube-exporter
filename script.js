@@ -29,8 +29,20 @@ exportBtn.addEventListener('click', async () => {
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'An unknown error occurred.');
+            let errorMessage = `Server Error: ${response.status}`;
+            try {
+                // Try to get a specific error message from the JSON body
+                const errorData = await response.json();
+                errorMessage = errorData.error || 'An unknown server error occurred.';
+            } catch (e) {
+                // This catch block is crucial for handling timeouts
+                if (e instanceof SyntaxError) {
+                    errorMessage = "Request timed out, which can happen with very large playlists. Please try again.";
+                } else {
+                    errorMessage = "The server returned an unexpected response. Please check server logs.";
+                }
+            }
+            throw new Error(errorMessage);
         }
 
         const contentDisposition = response.headers.get('Content-Disposition');
@@ -62,7 +74,7 @@ exportBtn.addEventListener('click', async () => {
     } finally {
         exportBtn.disabled = false;
         exportBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        setTimeout(() => { statusEl.textContent = ''; }, 5000);
+        setTimeout(() => { statusEl.textContent = ''; }, 8000);
     }
 });
 

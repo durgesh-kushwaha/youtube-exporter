@@ -17,6 +17,10 @@ YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
 def extract_playlist_id(url):
+    """
+    Extracts the playlist ID from a YouTube URL.
+    This regex is designed to be robust and handle various YouTube URL formats.
+    """
     regex = r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/playlist\?list=([a-zA-Z0-9_-]+)'
     match = re.search(regex, url)
     if match:
@@ -24,7 +28,10 @@ def extract_playlist_id(url):
     return None
 
 def parse_iso8601_duration(duration):
-    if not duration or 'D' in duration:
+    """
+    Parses an ISO 8601 duration string (e.g., PT2M35S) into a human-readable MM:SS format.
+    """
+    if not duration or 'D' in duration: 
         return 'N/A'
         
     match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration)
@@ -48,9 +55,10 @@ def parse_iso8601_duration(duration):
 
 @app.route('/api/export', methods=['POST'])
 def export_playlist():
-    if not API_KEY:
-        return jsonify({'error': 'Server configuration error: YOUTUBE_API_KEY is not set.'}), 500
-
+    """
+    The main API endpoint. It receives a playlist URL, fetches the data,
+    and returns a CSV file.
+    """
     playlist_url = request.json.get('playlist_url')
     if not playlist_url:
         return jsonify({'error': 'Playlist URL is required.'}), 400
@@ -72,6 +80,7 @@ def export_playlist():
             return jsonify({'error': 'Playlist not found or is private.'}), 404
             
         playlist_title = playlist_response['items'][0]['snippet']['title']
+     
         safe_playlist_title = re.sub(r'[\\/*?:"<>|]', "", playlist_title)
         filename = f"{safe_playlist_title}.csv"
 
@@ -146,7 +155,7 @@ def export_playlist():
         df = pd.DataFrame(final_video_list)
 
         output = BytesIO()
-        df.to_csv(output, index=False, encoding='utf-8-sig')
+        df.to_csv(output, index=False, encoding='utf-8-sig') 
         output.seek(0)
 
         return send_file(
