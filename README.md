@@ -64,19 +64,15 @@ Install all the required Python packages using the `requirements.txt` file.
 pip install -r requirements.txt
 ```
 
-### 5. Run the Backend Server
+### 5. Run the Application
 
 Start the Flask development server.
 
 ```bash
-python app.py
+python api/app.py
 ```
 
-The backend will now be running at `http://127.0.0.1:5000`.
-
-### 6. Launch the Frontend
-
-Open the `index.html` file in your web browser. You can now use the application by pasting a playlist URL and clicking "Export".
+The application will now be running at `http://127.0.0.1:5000`. Open this URL in your web browser to access the frontend and use the app.
 
 ## Deployment to Vercel
 
@@ -111,7 +107,12 @@ After deployment, update the fetch URL in `index.html` to point to your new Verc
 .
 ├── .gitignore         # Tells Git which files to ignore
 ├── README.md          # This file
-├── app.py             # The core Flask backend application
+├── api/
+│   └── app.py         # The core Flask backend application
 ├── index.html         # The frontend UI
+├── script.js          # The frontend JavaScript
+├── privacy.html       # Privacy Policy page
+├── terms.html         # Terms & Conditions page
+├── contact.html       # Contact page
 ├── requirements.txt   # List of Python dependencies
 └── vercel.json        # Configuration for Vercel deployment

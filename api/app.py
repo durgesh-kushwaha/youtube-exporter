@@ -2,6 +2,7 @@ import os
 import re
 from flask import Flask, request, jsonify, send_file
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 from dotenv import load_dotenv
 import pandas as pd
 from io import BytesIO
@@ -17,10 +18,6 @@ YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
 def extract_playlist_id(url):
-    """
-    Extracts the playlist ID from a YouTube URL.
-    This regex is designed to be robust and handle various YouTube URL formats.
-    """
     regex = r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/playlist\?list=([a-zA-Z0-9_-]+)'
     match = re.search(regex, url)
     if match:
@@ -28,10 +25,7 @@ def extract_playlist_id(url):
     return None
 
 def parse_iso8601_duration(duration):
-    """
-    Parses an ISO 8601 duration string (e.g., PT2M35S) into a human-readable MM:SS format.
-    """
-    if not duration or 'D' in duration: 
+    if not duration or 'D' in duration:
         return 'N/A'
         
     match = re.match(r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?', duration)
@@ -52,13 +46,11 @@ def parse_iso8601_duration(duration):
     else:
         return f"{m:02d}:{s:02d}"
 
-
 @app.route('/api/export', methods=['POST'])
 def export_playlist():
-    """
-    The main API endpoint. It receives a playlist URL, fetches the data,
-    and returns a CSV file.
-    """
+    if not API_KEY:
+        return jsonify({'error': 'Server configuration error: YOUTUBE_API_KEY is not set.'}), 500
+
     playlist_url = request.json.get('playlist_url')
     if not playlist_url:
         return jsonify({'error': 'Playlist URL is required.'}), 400
@@ -80,7 +72,6 @@ def export_playlist():
             return jsonify({'error': 'Playlist not found or is private.'}), 404
             
         playlist_title = playlist_response['items'][0]['snippet']['title']
-     
         safe_playlist_title = re.sub(r'[\\/*?:"<>|]', "", playlist_title)
         filename = f"{safe_playlist_title}.csv"
 
@@ -155,7 +146,7 @@ def export_playlist():
         df = pd.DataFrame(final_video_list)
 
         output = BytesIO()
-        df.to_csv(output, index=False, encoding='utf-8-sig') 
+        df.to_csv(output, index=False, encoding='utf-8-sig')
         output.seek(0)
 
         return send_file(
@@ -165,9 +156,36 @@ def export_playlist():
             download_name=filename 
         )
 
+    except HttpError as e:
+        error_details = e.error_details[0] if e.error_details else {}
+        reason = error_details.get('reason', 'unknown')
+        print(f"A Google API error occurred: {reason}")
+        return jsonify({'error': f'YouTube API Error: {reason}. Check your API key quota and permissions.'}), e.resp.status
+    
     except Exception as e:
-        print(f"An error occurred: {e}")
-        return jsonify({'error': 'An internal server error occurred. Please check the API key and playlist permissions.'}), 500
+        print(f"An internal error occurred: {e}")
+        return jsonify({'error': 'An internal server error occurred.'}), 500
+
+@app.route('/')
+def index():
+    return send_file('../index.html')
+
+@app.route('/script.js')
+def script():
+    return send_file('../script.js')
+
+@app.route('/privacy.html')
+def privacy():
+    return send_file('../privacy.html')
+
+@app.route('/terms.html')
+def terms():
+    return send_file('../terms.html')
+
+@app.route('/contact.html')
+def contact():
+    return send_file('../contact.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
