@@ -7,12 +7,12 @@
   ],
   "routes": [
     {
-      "src": "/api/export",
-      "dest": "app.py"
+      "handle": "filesystem"
     },
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "src": "/api/export",
+      "dest": "app.py"
     }
   ]
 }
+
