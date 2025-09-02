@@ -166,25 +166,27 @@ def export_playlist():
         print(f"An internal error occurred: {e}")
         return jsonify({'error': 'An internal server error occurred.'}), 500
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 @app.route('/')
 def index():
-    return send_file('../index.html')
+    return send_file(os.path.join(BASE_DIR, 'index.html'))
 
 @app.route('/script.js')
 def script():
-    return send_file('../script.js')
+    return send_file(os.path.join(BASE_DIR, 'script.js'))
 
 @app.route('/privacy.html')
 def privacy():
-    return send_file('../privacy.html')
+    return send_file(os.path.join(BASE_DIR, 'privacy.html'))
 
 @app.route('/terms.html')
 def terms():
-    return send_file('../terms.html')
+    return send_file(os.path.join(BASE_DIR, 'terms.html'))
 
 @app.route('/contact.html')
 def contact():
-    return send_file('../contact.html')
+    return send_file(os.path.join(BASE_DIR, 'contact.html'))
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
