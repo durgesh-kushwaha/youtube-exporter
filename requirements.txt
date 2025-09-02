@@ -1,0 +1,5 @@
+Flask
+google-api-python-client
+pandas
+python-dotenv
+Flask-Cors
