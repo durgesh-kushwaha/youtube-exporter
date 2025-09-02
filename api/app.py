@@ -17,7 +17,6 @@ YOUTUBE_API_SERVICE_NAME = 'youtube'
 YOUTUBE_API_VERSION = 'v3'
 
 def extract_playlist_id(url):
-  
     regex = r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/playlist\?list=([a-zA-Z0-9_-]+)'
     match = re.search(regex, url)
     if match:
@@ -25,7 +24,6 @@ def extract_playlist_id(url):
     return None
 
 def parse_iso8601_duration(duration):
-  
     if not duration or 'D' in duration:
         return 'N/A'
         
@@ -50,7 +48,9 @@ def parse_iso8601_duration(duration):
 
 @app.route('/api/export', methods=['POST'])
 def export_playlist():
-    
+    if not API_KEY:
+        return jsonify({'error': 'Server configuration error: YOUTUBE_API_KEY is not set.'}), 500
+
     playlist_url = request.json.get('playlist_url')
     if not playlist_url:
         return jsonify({'error': 'Playlist URL is required.'}), 400
@@ -153,7 +153,7 @@ def export_playlist():
             output,
             mimetype='text/csv',
             as_attachment=True,
-            download_name=filename
+            download_name=filename 
         )
 
     except Exception as e:
@@ -162,4 +162,3 @@ def export_playlist():
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
-
